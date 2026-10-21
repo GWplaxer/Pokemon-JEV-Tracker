@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon TCG JEV Leaderboard Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 { margin: 0 0 10px 0; font-size: 28px; }
+        p { margin: 0; opacity: 0.9; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 5px solid #2a5298;
+        }
+        .card.top { border-left-color: #27ae60; }
+        .card.bottom { border-left-color: #e74c3c; }
+        .card h3 { margin: 0 0 10px 0; font-size: 16px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        .card .value { font-size: 24px; font-weight: bold; color: #1e3c72; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        th, td { padding: 15px; text-align: left; }
+        th { background-color: #1e3c72; color: white; font-weight: 600; text-transform: uppercase; font-size: 13px; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        tr:hover { background-color: #f1f3f5; }
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-high { background-color: #d4edda; color: #155724; }
+        .badge-mid { background-color: #fff3cd; color: #856404; }
+        .badge-low { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 Pokémon TCG JEV Leaderboard</h1>
+            <p>Live automated matrix mapping Jackpot Expected Value Coefficients against market rates across 29 flagship expansions.</p>
+        </header>
+
+        <div class="grid">
+            <div class="card top">
+                <h3>Highest Efficiency</h3>
+                <div class="value">Pitch Black</div>
+                <p style="margin-top:5px; color:#27ae60;">JEV Coefficient: 0.2965</p>
+            </div>
+            <div class="card">
+                <h3>Global Average JEV</h3>
+                <div class="value">0.0510</div>
+                <p style="margin-top:5px; color:#666;">~5.1% Return Weight</p>
+            </div>
+            <div class="card bottom">
+                <h3>Lowest Efficiency</h3>
+                <div class="value">Flashfire</div>
+                <p style="margin-top:5px; color:#e74c3c;">JEV Coefficient: 0.0015</p>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Expansion Set Name</th>
+                    <th>Product Type</th>
+                    <th>Avg Top 3 Chase Value</th>
+                    <th>Combined Hit Rate</th>
+                    <th>JEV Coefficient</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Data is loaded instantly -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const setsData = [
+            {"rank": 1, "name": "Pitch Black", "type": "Booster Box", "avgValue": "$240.00", "hitRate": "22.50%", "jev": "0.2965"},
+            {"rank": 2, "name": "Prismatic Evolutions", "type": "ETB (9-pack)", "avgValue": "$285.00", "hitRate": "5.40%", "jev": "0.2798"},
+            {"rank": 3, "name": "Brilliant Stars", "type": "Booster Box", "avgValue": "$85.00", "hitRate": "21.60%", "jev": "0.1266"},
+            {"rank": 4, "name": "Ascended Heroes", "type": "ETB (9-pack)", "avgValue": "$480.00", "hitRate": "2.25%", "jev": "0.0900"},
+            {"rank": 5, "name": "Destined Rivals", "type": "Booster Box", "avgValue": "$310.00", "hitRate": "10.44%", "jev": "0.0809"},
+            {"rank": 6, "name": "Crown Zenith", "type": "ETB (10-pack)", "avgValue": "$72.00", "hitRate": "6.00%", "jev": "0.0785"},
+            {"rank": 7, "name": "Scarlet & Violet 151", "type": "Bundle (6-pack)", "avgValue": "$75.00", "hitRate": "3.60%", "jev": "0.0675"},
+            {"rank": 8, "name": "Surging Sparks", "type": "Booster Box", "avgValue": "$115.00", "hitRate": "5.70%", "jev": "0.0570"},
+            {"rank": 9, "name": "Twilight Masquerade", "type": "Booster Box", "avgValue": "$135.00", "hitRate": "2.58%", "jev": "0.0317"},
+            {"rank": 10, "name": "Paldea Evolved", "type": "Booster Box", "avgValue": "$78.00", "hitRate": "4.20%", "jev": "0.0312"},
+            {"rank": 11, "name": "Hidden Fates", "type": "ETB (10-pack)", "avgValue": "$165.00", "hitRate": "3.00%", "jev": "0.0309"},
+            {"rank": 12, "name": "Phantasmal Flames", "type": "Booster Box", "avgValue": "$48.00", "hitRate": "9.60%", "jev": "0.0307"},
+            {"rank": 13, "name": "Team Up", "type": "Booster Box", "avgValue": "$490.00", "hitRate": "7.50%", "jev": "0.0306"},
+            {"rank": 14, "name": "Stellar Crown", "type": "Booster Box", "avgValue": "$58.00", "hitRate": "4.50%", "jev": "0.0256"},
+            {"rank": 15, "name": "Base Set (1st Edition)", "type": "Booster Box", "avgValue": "$78,000.00", "hitRate": "11.19%", "jev": "0.0249"},
+            {"rank": 16, "name": "Cosmic Eclipse", "type": "Booster Box", "avgValue": "$210.00", "hitRate": "8.40%", "jev": "0.0235"},
+            {"rank": 17, "name": "Lost Origin", "type": "Booster Box", "avgValue": "$195.00", "hitRate": "2.16%", "jev": "0.0222"},
+            {"rank": 18, "name": "Black Bolt", "type": "Booster Box", "avgValue": "$8.50", "hitRate": "21.60%", "jev": "0.0160"},
+            {"rank": 19, "name": "Unbroken Bonds", "type": "Booster Box", "avgValue": "$135.00", "hitRate": "6.60%", "jev": "0.0154"},
+            {"rank": 20, "name": "White Flare", "type": "Booster Box", "avgValue": "$8.00", "hitRate": "21.60%", "jev": "0.0150"},
+            {"rank": 21, "name": "Chaos Rising", "type": "Booster Box", "avgValue": "$9.20", "hitRate": "21.60%", "jev": "0.0147"},
+            {"rank": 22, "name": "Team Rocket Returns", "type": "Booster Box", "avgValue": "$2,100.00", "hitRate": "12.60%", "jev": "0.0147"},
+            {"rank": 23, "name": "Skyridge", "type": "Booster Box", "avgValue": "$7,200.00", "hitRate": "10.80%", "jev": "0.0141"},
+            {"rank": 24, "name": "Evolving Skies", "type": "Booster Box", "avgValue": "$1,850.00", "hitRate": "0.54%", "jev": "0.0138"},
+            {"rank": 25, "name": "Shrouded Fable", "type": "Box (5-pack)", "avgValue": "$19.00", "hitRate": "2.10%", "jev": "0.0133"},
+            {"rank": 26, "name": "Perfect Order", "type": "Booster Box", "avgValue": "$7.10", "hitRate": "21.60%", "jev": "0.0118"},
+            {"rank": 27, "name": "Journey Together", "type": "Booster Box", "avgValue": "$6.20", "hitRate": "21.60%", "jev": "0.0112"},
+            {"rank": 28, "name": "Phantom Forces", "type": "Booster Box", "avgValue": "$95.00", "hitRate": "14.40%", "jev": "0.0098"},
+            {"rank": 29, "name": "Flashfire", "type": "Booster Box", "avgValue": "$240.00", "hitRate": "21.60%", "jev": "0.0015"}
+        ];
+
+        const tbody = document.getElementById('table-body');
+        setsData.forEach(set => {
+            const val = parseFloat(set.jev);
+            let badgeClass = 'badge-low';
+            if(val > 0.08) badgeClass = 'badge-high';
+            else if(val > 0.02) badgeClass = 'badge-mid';
+
+            const row = `<tr>
+                <td><b>#${set.rank}</b></td>
+                <td><b>${set.name}</b></td>
+                <td>${set.type}</td>
+                <td>${set.avgValue}</td>
+                <td>${set.hitRate}</td>
+                <td><span class="badge ${badgeClass}">${set.jev}</span></td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    </script>
+</body>
+</html>
