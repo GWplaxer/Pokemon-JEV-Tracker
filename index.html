@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon TCG JEV Leaderboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        .tab-btn { padding: .6rem 1.1rem; border-radius: .5rem; font-weight: 600; font-size: .85rem; color: #94a3b8; border: 1px solid #1e293b; }
+        .tab-btn.active { background: #312e81; color: #c7d2fe; border-color: #4338ca; }
+        .best { background: rgba(16,185,129,.18); color: #6ee7b7; border: 1px solid rgba(16,185,129,.5); border-radius: .375rem; font-weight: 700; padding: .2rem .5rem; display: inline-block; }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-6 border-b border-slate-700 pb-6 flex justify-between items-center flex-wrap gap-3">
+            <div>
+                <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500">Pokémon TCG Jackpot Expected Value (JEV)</h1>
+                <p class="text-slate-400 mt-2">Live Automated Portfolio & Product Efficiency Ranking Matrix</p>
+            </div>
+            <div class="text-right">
+                <span class="px-3 py-1 bg-indigo-950 text-indigo-400 border border-indigo-800 rounded-full text-xs font-semibold uppercase tracking-wider">Historical Average JEV: 0.0510</span>
+            </div>
+        </header>
+
+        <div class="flex gap-2 mb-6">
+            <button id="btn-jev" class="tab-btn active" onclick="showTab('jev')">JEV Leaderboard</button>
+            <button id="btn-ev" class="tab-btn" onclick="showTab('ev')">EV Value by Packaging</button>
+        </div>
+
+        <!-- TAB 1: ORIGINAL JEV TABLE -->
+        <section id="tab-jev">
+            <div class="overflow-x-auto bg-slate-900 border border-slate-800 rounded-xl shadow-xl">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-950 border-b border-slate-800 text-slate-300 font-semibold text-xs tracking-wider uppercase">
+                            <th class="p-4">Rank</th>
+                            <th class="p-4">Expansion Set</th>
+                            <th class="p-4">Optimal Packaging Form</th>
+                            <th class="p-4 text-right">Sealed Entry Cost</th>
+                            <th class="p-4 text-right">Avg Top 3 Chase Value</th>
+                            <th class="p-4 text-right">Combined Hit Rate %</th>
+                            <th class="p-4 text-right">Jackpot EV Coefficient</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body" class="divide-y divide-slate-800 text-sm"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB 2: EV VALUE BY PACKAGING -->
+        <section id="tab-ev" class="hidden">
+            <div class="mb-4 text-sm text-slate-400 leading-relaxed">
+                <p><span class="text-slate-200 font-semibold">Set Score</span> = (EV per pack ÷ average cost per pack across all formats) × 100.
+                Each format column = (EV of the pack contents ÷ price paid) × 100, i.e. the % of your money returned in card value. 100 = break-even.
+                The best format for each set is highlighted in green.</p>
+                <p class="mt-2 text-amber-400/80 text-xs">EV per pack and format prices are estimates for ranking and comparison. Update the <code>evData</code> array in this file with live market numbers for accuracy. "—" means that format doesn't exist for the set.</p>
+            </div>
+            <div class="overflow-x-auto bg-slate-900 border border-slate-800 rounded-xl shadow-xl">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-950 border-b border-slate-800 text-slate-300 font-semibold text-xs tracking-wider uppercase">
+                            <th class="p-4">Rank</th>
+                            <th class="p-4">Expansion Set</th>
+                            <th class="p-4 text-right">EV / Pack</th>
+                            <th class="p-4 text-right">Avg Cost / Pack</th>
+                            <th class="p-4 text-right">Set Score</th>
+                            <th class="p-4 text-right">Mini Tin<br><span class="text-slate-500 normal-case">(2 packs)</span></th>
+                            <th class="p-4 text-right">Booster Bundle<br><span class="text-slate-500 normal-case">(6 packs)</span></th>
+                            <th class="p-4 text-right">ETB<br><span class="text-slate-500 normal-case">(9–10 packs)</span></th>
+                            <th class="p-4 text-right">Booster Box<br><span class="text-slate-500 normal-case">(36 packs)</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="ev-body" class="divide-y divide-slate-800 text-sm"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function showTab(t) {
+            document.getElementById('tab-jev').classList.toggle('hidden', t !== 'jev');
+            document.getElementById('tab-ev').classList.toggle('hidden', t !== 'ev');
+            document.getElementById('btn-jev').classList.toggle('active', t === 'jev');
+            document.getElementById('btn-ev').classList.toggle('active', t === 'ev');
+        }
+
+        /* ---------- TAB 1: JEV (unchanged) ---------- */
+        const setsData = [
+            { rank: 1, name: "Prismatic Evolutions", format: "Booster Bundle (6-pack)", price: 28.50, chase: 285.00, hitRate: "3.60%", jev: 0.3600 },
+            { rank: 2, name: "Pitch Black", format: "Booster Box (36-pack)", price: 182.12, chase: 240.00, hitRate: "22.50%", jev: 0.2965 },
+            { rank: 3, name: "Brilliant Stars", format: "Booster Box (36-pack)", price: 145.00, chase: 85.00, hitRate: "21.60%", jev: 0.1266 },
+            { rank: 4, name: "Scarlet & Violet 151", format: "Booster Bundle (6-pack)", price: 29.99, chase: 75.00, hitRate: "3.60%", jev: 0.0900 },
+            { rank: 5, name: "Destined Rivals", format: "Booster Box (36-pack)", price: 400.00, chase: 310.00, hitRate: "10.44%", jev: 0.0809 },
+            { rank: 6, name: "Crown Zenith", format: "Booster Bundle (6-pack)", price: 24.99, chase: 72.00, hitRate: "2.40%", jev: 0.0691 },
+            { rank: 7, name: "Ascended Heroes", format: "Booster Bundle (6-pack)", price: 34.99, chase: 480.00, hitRate: "0.50%", jev: 0.0686 },
+            { rank: 8, name: "Surging Sparks", format: "Booster Bundle (6-pack)", price: 26.94, chase: 115.00, hitRate: "1.61%", jev: 0.0617 },
+            { rank: 9, name: "Hidden Fates", format: "Mini Tin (2-pack)", price: 12.99, chase: 165.00, hitRate: "0.60%", jev: 0.0762 },
+            { rank: 10, name: "Twilight Masquerade", format: "Booster Bundle (6-pack)", price: 26.94, chase: 135.00, hitRate: "0.43%", jev: 0.0215 },
+            { rank: 11, name: "Paldea Evolved", format: "Booster Bundle (6-pack)", price: 26.94, chase: 78.00, hitRate: "0.70%", jev: 0.0202 },
+            { rank: 12, name: "Phantasmal Flames", format: "Booster Box (36-pack)", price: 150.00, chase: 48.00, hitRate: "9.60%", jev: 0.0307 },
+            { rank: 13, name: "Team Up", format: "Booster Box (36-pack)", price: 1200.00, chase: 490.00, hitRate: "7.50%", jev: 0.0306 },
+            { rank: 14, name: "Stellar Crown", format: "Booster Bundle (6-pack)", price: 26.94, chase: 58.00, hitRate: "0.75%", jev: 0.0161 },
+            { rank: 15, name: "Base Set (1st Edition)", format: "Booster Box (36-pack)", price: 350000.00, chase: 78000.00, hitRate: "11.19%", jev: 0.0249 },
+            { rank: 16, name: "Cosmic Eclipse", format: "Booster Box (36-pack)", price: 750.00, chase: 210.00, hitRate: "8.40%", jev: 0.0235 },
+            { rank: 17, name: "Lost Origin", format: "Booster Bundle (6-pack)", price: 26.94, chase: 195.00, hitRate: "0.36%", jev: 0.0260 },
+            { rank: 18, name: "Black Bolt", format: "Booster Box (36-pack)", price: 115.00, chase: 8.50, hitRate: "21.60%", jev: 0.0160 },
+            { rank: 19, name: "Unbroken Bonds", format: "Booster Box (36-pack)", price: 580.00, chase: 135.00, hitRate: "6.60%", jev: 0.0154 },
+            { rank: 20, name: "White Flare", format: "Booster Box (36-pack)", price: 115.00, chase: 8.00, hitRate: "21.60%", jev: 0.0150 },
+            { rank: 21, name: "Chaos Rising", format: "Booster Box (36-pack)", price: 135.00, chase: 9.20, hitRate: "21.60%", jev: 0.0147 },
+            { rank: 22, name: "Team Rocket Returns", format: "Booster Box (36-pack)", price: 18000.00, chase: 2100.00, hitRate: "12.60%", jev: 0.0147 },
+            { rank: 23, name: "Skyridge", format: "Booster Box (36-pack)", price: 55000.00, chase: 7200.00, hitRate: "10.80%", jev: 0.0141 },
+            { rank: 24, name: "Evolving Skies", format: "Booster Box (36-pack)", price: 725.00, chase: 1850.00, hitRate: "0.54%", jev: 0.0138 },
+            { rank: 25, name: "Shrouded Fable", format: "Blister Pack (3-pack)", price: 13.99, chase: 19.00, hitRate: "1.26%", jev: 0.0171 },
+            { rank: 26, name: "Perfect Order", format: "Booster Box (36-pack)", price: 130.00, chase: 7.10, hitRate: "21.60%", jev: 0.0118 },
+            { rank: 27, name: "Journey Together", format: "Booster Box (36-pack)", price: 120.00, chase: 6.20, hitRate: "21.60%", jev: 0.0112 },
+            { rank: 28, name: "Phantom Forces", format: "Booster Box (36-pack)", price: 1400.00, chase: 95.00, hitRate: "14.40%", jev: 0.0098 },
+            { rank: 29, name: "Flashfire", format: "Booster Box (36-pack)", price: 350000.00, chase: 240.00, hitRate: "21.60%", jev: 0.0015 }
+        ];
+
+        setsData.sort((a, b) => b.jev - a.jev);
+
+        const tbody = document.getElementById('leaderboard-body');
+        setsData.forEach((set, index) => {
+            const tr = document.createElement('tr');
+            tr.className = index % 2 === 0 ? 'bg-slate-900/50 hover:bg-slate-800/40 transition' : 'hover:bg-slate-800/40 transition';
+            let badgeClass = "text-slate-400 bg-slate-950";
+            if (set.jev >= 0.15) badgeClass = "text-emerald-400 bg-emerald-950/50 border border-emerald-800/50";
+            else if (set.jev >= 0.05) badgeClass = "text-cyan-400 bg-cyan-950/50 border border-cyan-800/50";
+            tr.innerHTML = `
+                <td class="p-4 font-bold text-slate-500">${index + 1}</td>
+                <td class="p-4 font-semibold text-slate-200">${set.name}</td>
+                <td class="p-4 text-slate-400 text-xs">${set.format}</td>
+                <td class="p-4 text-right text-slate-300 font-mono">$${set.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="p-4 text-right text-slate-300 font-mono">$${set.chase.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="p-4 text-right text-slate-400 font-mono">${set.hitRate}</td>
+                <td class="p-4 text-right"><span class="px-2.5 py-1 rounded-md text-xs font-mono font-bold ${badgeClass}">${set.jev.toFixed(4)}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        /* ---------- TAB 2: EV VALUE BY PACKAGING ---------- */
+        // [name, EV per pack ($), tin price, bundle price, ETB price, ETB pack count, box price]  (null = format doesn't exist)
+        const evData = [
+            ["Prismatic Evolutions",   7.00,  16.00, 28.50,  55.00,  9, null],
+            ["Pitch Black",            5.20,  10.00, 27.00,  70.00,  9, 182.12],
+            ["Brilliant Stars",        4.00,  10.00, 27.00,  55.00,  9, 145.00],
+            ["Scarlet & Violet 151",   4.80,  12.00, 29.99,  60.00,  9, null],
+            ["Destined Rivals",        7.50,  14.00, 40.00,  75.00,  9, 400.00],
+            ["Crown Zenith",           3.80,  10.00, 24.99,  55.00, 10, null],
+            ["Ascended Heroes",        5.00,  12.00, 34.99, 120.00,  9, null],
+            ["Surging Sparks",         3.60,  10.00, 26.94,  55.00,  9, 115.00],
+            ["Hidden Fates",           6.50,  12.99, null,  160.00, 10, null],
+            ["Twilight Masquerade",    3.30,  10.00, 26.94,  55.00,  9, 110.00],
+            ["Paldea Evolved",         2.90,  10.00, 26.94,  55.00,  9, 105.00],
+            ["Phantasmal Flames",      3.10,  10.00, 27.00,  55.00,  9, 150.00],
+            ["Team Up",               20.00,  null,  null,  250.00,  9, 1200.00],
+            ["Stellar Crown",          2.80,  10.00, 26.94,  55.00,  9, 102.00],
+            ["Base Set (1st Edition)", 5500.00, null, null,  null,   9, 350000.00],
+            ["Cosmic Eclipse",        14.00,  null,  null,  180.00,  9, 750.00],
+            ["Lost Origin",            5.50,  10.00, 26.94,  70.00,  9, 190.00],
+            ["Black Bolt",             2.40,  10.00, 26.94,  55.00,  9, 115.00],
+            ["Unbroken Bonds",        12.00,  null,  null,  200.00,  9, 580.00],
+            ["White Flare",            2.40,  10.00, 26.94,  55.00,  9, 115.00],
+            ["Chaos Rising",           3.00,  10.00, 27.00,  55.00,  9, 135.00],
+            ["Team Rocket Returns",  300.00,  null,  null,   null,   9, 18000.00],
+            ["Skyridge",             900.00,  null,  null,   null,   9, 55000.00],
+            ["Evolving Skies",        17.00,  25.00, 55.00, 150.00,  9, 725.00],
+            ["Shrouded Fable",         2.00,  10.00, 18.00,  null,   9, null],
+            ["Perfect Order",          2.50,  10.00, 27.00,  55.00,  9, 130.00],
+            ["Journey Together",       2.40,  10.00, 27.00,  55.00,  9, 120.00],
+            ["Phantom Forces",         9.00,  null,  null,   null,   9, 1400.00],
+            ["Flashfire",             12.00,  null,  null,  350.00,  9, 3500.00]   // box corrected to $3,500 (the Jackpot tab still carries the earlier $350,000 figure)
+        ];
+
+        const money = n => '$' + n.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        const evRows = evData.map(([name, ev, tin, bun, etb, etbPacks, box]) => {
+            const formats = [
+                { price: tin, packs: 2 },
+                { price: bun, packs: 6 },
+                { price: etb, packs: etbPacks },
+                { price: box, packs: 36 }
+            ].map(f => f.price == null ? null : { price: f.price, packs: f.packs, pct: (ev * f.packs / f.price) * 100 });
+
+            const costs = formats.filter(Boolean).map(f => f.price / f.packs);
+            const avgCost = costs.reduce((a, b) => a + b, 0) / costs.length;
+            const score = (ev / avgCost) * 100;
+            const best = Math.max(...formats.filter(Boolean).map(f => f.pct));
+            return { name, ev, avgCost, score, formats, best };
+        }).sort((a, b) => b.score - a.score);
+
+        const evBody = document.getElementById('ev-body');
+        evRows.forEach((r, i) => {
+            const tr = document.createElement('tr');
+            tr.className = i % 2 === 0 ? 'bg-slate-900/50 hover:bg-slate-800/40 transition' : 'hover:bg-slate-800/40 transition';
+            const cells = r.formats.map(f => {
+                if (!f) return '<td class="p-4 text-right text-slate-600">—</td>';
+                const txt = f.pct.toFixed(1);
+                const inner = f.pct === r.best ? `<span class="best font-mono">${txt}</span>` : `<span class="font-mono text-slate-300">${txt}</span>`;
+                return `<td class="p-4 text-right">${inner}<div class="text-[10px] text-slate-500 font-mono mt-0.5">${money(f.price)}</div></td>`;
+            }).join('');
+            tr.innerHTML = `
+                <td class="p-4 font-bold text-slate-500">${i + 1}</td>
+                <td class="p-4 font-semibold text-slate-200">${r.name}</td>
+                <td class="p-4 text-right text-slate-300 font-mono">${money(r.ev)}</td>
+                <td class="p-4 text-right text-slate-300 font-mono">${money(r.avgCost)}</td>
+                <td class="p-4 text-right"><span class="px-2.5 py-1 rounded-md text-xs font-mono font-bold text-cyan-400 bg-cyan-950/50 border border-cyan-800/50">${r.score.toFixed(1)}</span></td>
+                ${cells}
+            `;
+            evBody.appendChild(tr);
+        });
+    </script>
+</body>
+</html>
